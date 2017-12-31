@@ -11,7 +11,7 @@ from model_rnn import LstmRNN
 flags = tf.app.flags
 flags.DEFINE_integer("stock_count", 100, "Stock count [100]")
 flags.DEFINE_integer("input_size", 1, "Input size [1]")
-flags.DEFINE_integer("num_steps", 30, "Num of steps [30]")
+flags.DEFINE_integer("num_steps", 30, "Num of steps [30]") # number of elements X (ex: for 1 row, X [0->29] = Y [30]) 
 flags.DEFINE_integer("num_layers", 1, "Num of layer [1]")
 flags.DEFINE_integer("lstm_size", 128, "Size of one LSTM cell [128]")
 flags.DEFINE_integer("batch_size", 64, "The size of batch images [64]")
@@ -20,7 +20,6 @@ flags.DEFINE_float("init_learning_rate", 0.001, "Initial learning rate at early 
 flags.DEFINE_float("learning_rate_decay", 0.99, "Decay rate of learning rate. [0.99]")
 flags.DEFINE_integer("init_epoch", 5, "Num. of epoches considered as early stage. [5]")
 flags.DEFINE_integer("max_epoch", 50, "Total training epoches. [50]")
-flags.DEFINE_integer("embed_size", None, "If provided, use embedding vector of this size. [None]")
 flags.DEFINE_string("stock_symbol", None, "Target stock symbol [None]")
 flags.DEFINE_integer("sample_size", 4, "Number of stocks to plot during training. [4]")
 flags.DEFINE_boolean("train", False, "True for training, False for testing [False]")
@@ -48,30 +47,6 @@ def load_sp500(input_size, num_steps, k=None, target_symbol=None, test_ratio=0.0
                 test_ratio=test_ratio)
         ]
 
-    # Load metadata of s & p 500 stocks
-    info = pd.read_csv("data/constituents-financials.csv")
-    info = info.rename(columns={col: col.lower().replace(' ', '_') for col in info.columns})
-    info['file_exists'] = info['symbol'].map(lambda x: os.path.exists("data/{}.csv".format(x)))
-    print info['file_exists'].value_counts().to_dict()
-
-    info = info[info['file_exists'] == True].reset_index(drop=True)
-    info = info.sort('market_cap', ascending=False).reset_index(drop=True)
-
-    if k is not None:
-        info = info.head(k)
-
-    print "Head of S&P 500 info:\n", info.head()
-
-    # Generate embedding meta file
-    info[['symbol', 'sector']].to_csv(os.path.join("logs/metadata.tsv"), sep='\t', index=False)
-
-    return [
-        StockDataSet(row['symbol'],
-                     input_size=input_size,
-                     num_steps=num_steps,
-                     test_ratio=0.05)
-        for _, row in info.iterrows()]
-
 
 def main(_):
     pp.pprint(flags.FLAGS.__flags)
@@ -88,8 +63,7 @@ def main(_):
             num_layers=FLAGS.num_layers,
             num_steps=FLAGS.num_steps,
             input_size=FLAGS.input_size,
-            keep_prob=FLAGS.keep_prob,
-            embed_size=FLAGS.embed_size,
+            keep_prob=FLAGS.keep_prob
         )
 
         show_all_variables()
@@ -100,9 +74,12 @@ def main(_):
             k=FLAGS.stock_count,
             target_symbol=FLAGS.stock_symbol,
         )
+		
+        print('len(stock_data_list) = ' + str(len(stock_data_list)))
 
         if FLAGS.train:
-            rnn_model.train(stock_data_list, FLAGS)
+            # rnn_model.train(stock_data_list, FLAGS)
+            rnn_model.train_stock(stock_data_list[0], FLAGS)
         else:
             if not rnn_model.load()[0]:
                 raise Exception("[!] Train a model first, then run test mode")

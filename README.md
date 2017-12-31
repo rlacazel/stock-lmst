@@ -31,3 +31,13 @@ scipy==0.19.1
 tensorflow==1.2.1
 urllib3==1.8
 ```
+
+## Useful links
+[Tuto part 1](https://lilianweng.github.io/lil-log/2017/07/08/predict-stock-prices-using-RNN-part-1.html)
+[Tuto part 2](https://lilianweng.github.io/lil-log/2017/07/22/predict-stock-prices-using-RNN-part-2.html)
+[Origin github](https://github.com/lilianweng/stock-rnn)
+[API - XNL4](https://www.alphavantage.co/documentation/#)
+[AlphaVentage API python](https://github.com/RomelTorres/alpha_vantage)
+
+##TO BE CONSIDERED
+* Embedding: https://www.tensorflow.org/programmers_guide/embedding
